@@ -30,6 +30,11 @@ of data points), which can pose a challenge for
 https://en.wikipedia.org/wiki/Mean_squared_error[mean squared error]
 and other similarity metrics.
 
+
+
+
+== Trajectory Similarity Metrics
+
 We consider several distance metrics for trajectory clustering. These metrics
 are capable of comparing the similarity of two trajectories even when their
 lengths differ. See `analyzer.py` for implementations.
@@ -86,16 +91,54 @@ parts of the hike.
 See https://www.youtube.com/watch?v=j5pPVC-mw_I[this animation on YouTube]
 for a visual representation. Note how the red line between the curves grows and
 shrinks. The Fréchet distance is the maximum length of the red line.
++
+We use the
+https://github.com/cjekel/similarity_measures[similaritymeasures]
+implementation of Fréchet distance.
 
 . `area` (2-D only) – We use the
-https://pypi.org/project/similaritymeasures/[similaritymeasures]
+https://github.com/cjekel/similarity_measures[similaritymeasures]
 implementation of the area between 2-D curves as a metric for measuring their
 similarity.
 
 
+
+
 == Setup
 
-TODO: Conda, requirements, etc.
+Install `conda`
+via Miniconda
+so that the `conda --version` command outputs a version number.
+See https://docs.anaconda.com/free/miniconda/[https://docs.anaconda.com/free/miniconda/].
+
+Use the `environment.yml` file to create a conda environment called `trajectory-clustering`:
+
+```bash
+# create the environment
+conda env create -f environment.yml
+
+# switch to the environment
+conda activate trajectory-clustering
+```
+
+Ensure you have the correct versions of Python and the required packages:
+
+```bash
+python --version
+# expecting 3.10.*
+
+conda list numpy
+# compare against environment.yml
+# etc.
+```
+
+[NOTE]
+====
+If you do not wish to use `conda` at all, you may manually install the required
+packages directly on your system via `pip`.
+====
+
+See the sections below to customize and run the example script.
 
 
 
@@ -104,14 +147,23 @@ TODO: Conda, requirements, etc.
 
 `main.py` contains several global constants at the top of the file that control
 the input data, output location and file type, and plotting options. There is
-also a constant that allows you to choose the amounts of clusters to consider.
+also a constant that allows you to list the number of clusters to consider.
 
 In `analyzer.py`, the function `_choose_group_to_split` contains a choice of
 which group of trajectories to split. By default, we split the group with the
 largest intra-group distance; that is, the group containing the two most
-"dissimilar" trajectories, according to the specified metric of similarity. If
-desired, we can simply split the group with the most trajectories; this is
-faster to compute, but may not be the "right" choice for trajectory clustering.
+"dissimilar" trajectories, according to the specified metric of similarity.
+
+If desired, we can simply split the group with the largest number of
+trajectories; this is faster to compute, but may not be the "correct" choice for
+trajectory clustering.
+
+[WARNING]
+====
+Computing Fréchet distance is _very_ slow compared to the other metrics.
+It is highly recommended that you split the group with the most elements when
+using the `frechet` distance metric.
+====
 
 
 
@@ -132,3 +184,17 @@ set of clustered trajectories.
 If `SAVE_PLOT` is enabled, an image file will be created for each set of
 clustered trajectories. You can configure the output directory and image file
 type in `main.py`.
+
+The outputs for trajectory clustering via Hausdorff distance with
+`n_groups=[2,4,6]` are shown below.
+
+[cols="1,1,1"]
+|===
+| `n_groups=2`
+| `n_groups=4`
+| `n_groups=6`
+
+a| image::small_2_hausdorff.svg[width=200]
+a| image::small_4_hausdorff.svg[width=200]
+a| image::small_6_hausdorff.svg[width=200]
+|===
