@@ -1,0 +1,134 @@
+= Trajectory Clustering Demo
+:nofooter:
+:toc: left
+:!stylesheet:
+:pdf-theme: default-sans
+:source-highlighter: rouge
+:stem: latexmath
+:icons: font
+:title-page: true
+ifndef::imagesdir[:imagesdir: ./images]
+
+
+
+
+== Overview
+
+This repository demonstrates techniques for clustering simulation trajectories.
+
+The trajectories in this example come from simulations of the the "NAV30"
+https://link.springer.com/chapter/10.1007/978-3-540-24743-2_22[navigation benchmark].
+Each trajectory starts in a grid cell at the top-left, and ends in
+a grid cell at the bottom-right.
+
+image::NAV30.png[width=600]
+
+In the provided `small.pickle` dataset,
+no two trajectories follow the same sequence of grid cells.
+Furthermore, the trajectories may have differing lengths (i.e. unequal amounts
+of data points), which can pose a challenge for
+https://en.wikipedia.org/wiki/Mean_squared_error[mean squared error]
+and other similarity metrics.
+
+We consider several distance metrics for trajectory clustering. These metrics
+are capable of comparing the similarity of two trajectories even when their
+lengths differ. See `analyzer.py` for implementations.
+
+. `hausdorff` – The
+https://en.wikipedia.org/wiki/Hausdorff_distance[Hausdorff distance]
+between two traces is the furthest directed distance from any point in
+either trace to its closest neighbor in the other trace.
+//
+We use the
+`scipy` implementation of
+https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.directed_hausdorff.html[_directed_ Hausdorff distance]
+in order to obtain the overall Hausdorff distance.
+//
+See equations (1) and (2) in
+https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=7053955[this paper] for a
+precise definition of (directed) Hausdorff distance.
++
+In the example below, the furthest distance from $A$ to $B$ takes place at
+the point $a_1$, so
+$d_{AB} = \lVert a_1, \ b \rVert$.
+//
+However, the furthest distance from $B$ to $A$ is
+$d_{BA} = \lVert b, \ a_2 \rVert$.
+//
+Since $d_{AB} > d_{BA}$, the overall Hausdorff distance is
++
+`hausdorff(A, B) = hausdorff(B, A) = max(d_AB, d_BA) = d_AB`.
+
+image::hausdorff.png[width=600]
+
+[start=2]
+. `average` – Similar to above, we consider the distance from every point in
+$A$ to its closest neighbor in $B$. However, we now take the average of all
+the distances $A$ to $B$, and the average of all distances $B$ to $A$,
+and return the average of the two averages. This lessens the effect of outliers,
+which can greatly impact the Hausdorff distance.
+
+. `frechet` – The
+https://en.wikipedia.org/wiki/Fr%C3%A9chet_distance[Fréchet distance]
+between two trajectories gives the "shortest leash" distance.
+For trajectories with similar shapes but different speeds, the Fréchet distance
+will consider the distance to be very small, making it ideal for spatial data
+with a time component.
++
+Informally, imagine you and a friend are hiking along two curved paths, and you
+must each hold one end of a rope (or leash) connecting the two of you. Since
+longer ropes are more expensive, you want to buy the shortest rope that is long
+enough to do the job. You are both free to slow down or stop while the other
+navigates tricky parts of the path, if it helps to keep the rope short. The
+Fréchet distance is the length of the shortest rope that is sufficient for all
+parts of the hike.
++
+See https://www.youtube.com/watch?v=j5pPVC-mw_I[this animation on YouTube]
+for a visual representation. Note how the red line between the curves grows and
+shrinks. The Fréchet distance is the maximum length of the red line.
+
+. `area` (2-D only) – We use the
+https://pypi.org/project/similaritymeasures/[similaritymeasures]
+implementation of the area between 2-D curves as a metric for measuring their
+similarity.
+
+
+== Setup
+
+TODO: Conda, requirements, etc.
+
+
+
+
+== Customize
+
+`main.py` contains several global constants at the top of the file that control
+the input data, output location and file type, and plotting options. There is
+also a constant that allows you to choose the amounts of clusters to consider.
+
+In `analyzer.py`, the function `_choose_group_to_split` contains a choice of
+which group of trajectories to split. By default, we split the group with the
+largest intra-group distance; that is, the group containing the two most
+"dissimilar" trajectories, according to the specified metric of similarity. If
+desired, we can simply split the group with the most trajectories; this is
+faster to compute, but may not be the "right" choice for trajectory clustering.
+
+
+
+
+== Run the code
+
+Ensure your conda environment is set up according to the instructions above.
+Then, run the example with the following command:
+
+[source, bash]
+----
+python main.py
+----
+
+If `SHOW_PLOT` is enabled, an interactive figure will be displayed for each
+set of clustered trajectories.
+
+If `SAVE_PLOT` is enabled, an image file will be created for each set of
+clustered trajectories. You can configure the output directory and image file
+type in `main.py`.

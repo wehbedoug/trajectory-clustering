@@ -11,7 +11,7 @@ import difflib
 """
 
 class SimulationAnalyzer:
-    def __init__(self, distance_metric="average"):
+    def __init__(self, distance_metric=None):
         self.distance_metric = distance_metric
 
     def set_distance_metric(self, distance_metric):
@@ -116,7 +116,9 @@ class SimulationAnalyzer:
         return ret_val
 
     def calculate_distance_between_traces(self, trace1, trace2):
-        if self.distance_metric == "average":
+        if self.distance_metric is None:
+            raise RuntimeError("Must choose a distance metric via set_distance_metric.")
+        elif self.distance_metric == "average":
             return self._average_distance_between_traces(trace1, trace2)
         elif self.distance_metric == "edit_distance":
             return self._edit_distance_between_traces(trace1, trace2)

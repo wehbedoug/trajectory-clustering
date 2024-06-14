@@ -41,8 +41,8 @@ def main():
     for metric in [
             "hausdorff",
             "average",
-            "area",
             "frechet",
+            "area",
             #"lcss", "edit_distance",  #  NAV-specific, string-based mode sequence distance metrics;
                                        #  requires installation of hyst, hybridpy, hylaa, etc.
         ]:
